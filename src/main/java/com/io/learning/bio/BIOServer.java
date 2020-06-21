@@ -23,12 +23,12 @@ public class BIOServer {
         // Listens for a connection to be made to this socket and accepts
         //     * it. The method blocks until a connection is made.
         // return the new Socket
-        // 如果一直没有client请求会一直阻塞
+        // Block One: 如果一直没有client请求会一直阻塞
         Socket clientSocket = serverSocket.accept();
         // Returns the address of the endpoint this socket is connected to 客户端地址
         System.out.println("connect from:" + clientSocket.getRemoteSocketAddress());
 
-        // an input stream for reading bytes from this socket. 从客户端读入的请求数据
+        // Block Two: an input stream for reading bytes from this socket. 从客户端读入的请求数据
         Scanner scanner = new Scanner(clientSocket.getInputStream());
         String request = scanner.nextLine();
         System.out.println("request:" + request);
