@@ -3,7 +3,7 @@
  * Author: Tang Yuqian <tangyuqian-sz@fangdd.com>
  * Date: 2020/6/21
  */
-package com.concurrency.in.practice;
+package com.concurrency.in.practice.sharing_objects;
 
 import java.util.EventListener;
 
