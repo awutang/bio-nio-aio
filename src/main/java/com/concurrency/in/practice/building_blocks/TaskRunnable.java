@@ -20,7 +20,8 @@ public class TaskRunnable implements Runnable {
         try {
             processTask(queue.take());
         } catch (InterruptedException e) {
-            // restore interrupted status 从中断中恢复？
+            // restore interrupted status 从中断中恢复？由于抛出InterruptedException时的interrupted会清除interrupted status且Runnable的run方法不能继续抛出InterruptedException,所以为了让外层代码感知到threadA是已经被中断的，则需要再次将threadA.interrupt恢复interrupted status。
+            // throw e;
             Thread.currentThread().interrupt();
         }
     }
