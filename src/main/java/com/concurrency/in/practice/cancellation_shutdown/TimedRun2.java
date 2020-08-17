@@ -48,6 +48,10 @@ public class TimedRun2 {
         RethrowableTask task = new RethrowableTask();
         final Thread taskThread = new Thread(task);
         taskThread.start();
+
+        taskThread.interrupt();
+        taskThread.interrupt();
+
         cancelExec.schedule(new Runnable() {
             public void run() {
                 taskThread.interrupt();
