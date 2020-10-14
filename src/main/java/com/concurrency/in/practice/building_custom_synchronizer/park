@@ -1,0 +1,113 @@
+void Parker::park(bool isAbsolute, jlong time) {
+  //将_counter属性置为0，返回值大于0，说明正在执行unpark动作唤醒当前线程，再park让其休眠无意义
+  if (Atomic::xchg(0, &_counter) > 0) return;
+
+  //获取当前的JavaThread
+  Thread* thread = Thread::current();
+  assert(thread->is_Java_thread(), "Must be JavaThread");
+  JavaThread *jt = (JavaThread *)thread;
+
+  //如果线程已经中断
+  if (Thread::is_interrupted(thread, false)) {
+    return;
+  }
+
+  timespec absTime;
+  if (time < 0 || (isAbsolute && time == 0) ) { // don't wait at all
+    return;
+  }
+  if (time > 0) {
+    //初始化absTime，计算等待到那个时间为止
+    unpackTime(&absTime, isAbsolute, time);
+  }
+
+  //切换线程状态为_thread_blocked，会检查安全点
+  ThreadBlockInVM tbivm(jt);
+
+  //如果该线程已经中断或者尝试获取锁失败则返回，尝试获取锁失败说明有其他线程占用这个锁
+  if (Thread::is_interrupted(thread, false) || pthread_mutex_trylock(_mutex) != 0) {
+    return;
+  }
+
+  int status ;
+  if (_counter > 0)  { //跟一开始的xchg逻辑相同
+    _counter = 0;
+    //解锁
+    status = pthread_mutex_unlock(_mutex);
+    assert (status == 0, "invariant") ;
+    //让修改立即生效
+    OrderAccess::fence();
+    return;
+  }
+
+  //修改线程状态为CONDVAR_WAIT
+  OSThreadWaitState osts(thread->osthread(), false /* not Object.wait() */);
+  jt->set_suspend_equivalent();
+
+  assert(_cur_index == -1, "invariant");
+  if (time == 0) {
+    _cur_index = REL_INDEX; // arbitrary choice when not timed
+    //无期限等待，直到被唤醒
+    status = pthread_cond_wait (&_cond[_cur_index], _mutex) ;
+  } else {
+    _cur_index = isAbsolute ? ABS_INDEX : REL_INDEX;
+    //底层是pthread_cond_timedwait，让当前线程在_mutex上等待指定的时间，如果这段时间范围内被唤醒了则返回0，否则返回非0值
+    status = os::Linux::safe_cond_timedwait (&_cond[_cur_index], _mutex, &absTime) ;
+    //WorkAroundNPTLTimedWaitHang的默认值是1
+    if (status != 0 && WorkAroundNPTLTimedWaitHang) {
+      //销毁并重新初始化_cur_index对应的_cond
+      pthread_cond_destroy (&_cond[_cur_index]) ;
+      pthread_cond_init    (&_cond[_cur_index], isAbsolute ? NULL : os::Linux::condAttr());
+    }
+  }
+  //线程被唤醒了，此时counter会被置为1
+  _cur_index = -1;
+  assert_status(status == 0 || status == EINTR ||
+                status == ETIME || status == ETIMEDOUT,
+                status, "cond_timedwait");
+  //将counter重置为0
+  _counter = 0 ;
+  //解锁
+  status = pthread_mutex_unlock(_mutex) ;
+  assert_status(status == 0, status, "invariant") ;
+  OrderAccess::fence();
+
+  if (jt->handle_special_suspend_equivalent_condition()) {
+    jt->java_suspend_self();
+  }
+}
+
+// thread.cpp
+bool Thread::is_interrupted(Thread* thread, bool clear_interrupted) {
+  trace("is_interrupted", thread);
+  debug_only(check_for_dangling_thread_pointer(thread);)
+  // Note:  If clear_interrupted==false, this simply fetches and
+  // returns the value of the field osthread()->interrupted().
+  return os::is_interrupted(thread, clear_interrupted);
+}
+
+
+// os_linux.cpp
+bool os::is_interrupted(Thread* thread, bool clear_interrupted) {
+  assert(Thread::current() == thread || Threads_lock->owned_by_self(),
+    "possibility of dangling Thread pointer");
+
+  OSThread* osthread = thread->osthread();
+
+  bool interrupted = osthread->interrupted();  //获取线程中断状态
+
+  if (interrupted && clear_interrupted) {
+    osthread->set_interrupted(false);  //清除线程中断状态，重置为false
+    // consider thread->_SleepEvent->reset() ... optional optimization
+  }
+
+  return interrupted;
+}
+
+
+
+// hotspot/src/share/vm/runtime/osThread.hpp:很短自己看
+volatile jint _interrupted;
+// Thread.isInterrupted
+state volatile bool interrupted() const{ return _interrupted != 0; }
+void set_interrupted(bool z){ _interrupted = z ? 1 : 0; }
