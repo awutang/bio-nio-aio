@@ -6,6 +6,7 @@ package com.concurrency.in.practice.building_custom_synchronizer;
 
 import sun.awt.windows.ThemeReader;
 
+import java.util.concurrent.locks.AbstractQueuedSynchronizer;
 import java.util.concurrent.locks.LockSupport;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -15,8 +16,11 @@ public class ReentrantLockTest {
 
     public static void main(String[] args) {
 
+
+
+
         // 测试interrupt status
-        Thread.currentThread().interrupt();
+        // Thread.currentThread().interrupt();
         System.out.println("isInterrupted:" + Thread.currentThread().isInterrupted());
         LockSupport.park();
         System.out.println("isInterrupted:" + Thread.currentThread().isInterrupted());
@@ -28,6 +32,7 @@ public class ReentrantLockTest {
 
         System.out.println("isInterrupted:" + Thread.currentThread().isInterrupted());
         LockSupport.park();
+
 
 
 
@@ -70,7 +75,6 @@ public class ReentrantLockTest {
             Thread.currentThread().interrupt();
         }
         reentrantLock.lock();
-
 
 //        try {
 ////            // park可以被中断
