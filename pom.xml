@@ -8,6 +8,10 @@
     <artifactId>bio-nio-aio</artifactId>
     <version>1.0-SNAPSHOT</version>
 
+    <properties>
+        <slf4j-api.version>1.7.26</slf4j-api.version>
+    </properties>
+
 
     <dependencies>
         <!-- https://mvnrepository.com/artifact/org.javatuples/javatuples -->
@@ -90,6 +94,33 @@
             <version>3.8.2</version>
             <scope>compile</scope>
         </dependency>
+
+        <!-- https://mvnrepository.com/artifact/org.openjdk.jol/jol-core 查看java对象内存结构的工具-->
+        <dependency>
+            <groupId>org.openjdk.jol</groupId>
+            <artifactId>jol-core</artifactId>
+            <version>0.9</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>${slf4j-api.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-all</artifactId>
+            <version>5.0.0.Alpha2</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/io.netty/netty -->
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty</artifactId>
+            <version>3.10.5.Final</version>
+        </dependency>
+
 
     </dependencies>
 

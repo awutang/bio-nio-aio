@@ -2,7 +2,7 @@
  * Author: Tang Yuqian
  * Date: 2020/5/31
  */
-package com.io.learning.bio;
+package com.io.learning;
 
 import java.io.IOException;
 import java.net.ServerSocket;

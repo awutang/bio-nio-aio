@@ -22,6 +22,9 @@ nbbuild/
 dist/
 nbdist/
 .nb-gradle/
+src/main/java/com/utils/GenerateRestore*
+src/main/java/com/utils/IdCardUtil.java
+src/main/java/com/utils/KeplerFileUtils.java
 
 ### Application ###
 .mvn
