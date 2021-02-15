@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="true" scanPeriod="600 seconds" debug="false">
+    <property name="project.name" value="za-pre-kepler-inloan"/>
+    <property name="project.name.monitor" value="zaprekeplerinloan"/>
+
+    <include resource="kepler-logback-file-appender.xml"/>
+    <include resource="kepler-monitor-logback-file-appender.xml" />
+
+        <property name="logging.requestInfoAppender.fileName" value="requestInfo-ss_micro_app_${hostname}_lt_info"/>
+        <property name="logPrintFormat" value="%d[%thread] %-5p [%c][%F:%L] [trace=%X{X-B3-TraceId:-},span=%X{X-B3-SpanId:-},product=%X{productCode:-}]-%.-5048msg%n"/>
+
+        <if condition='",pre,prd".indexOf(property("DEPLOY_ENV")) > 0'>
+            <!-- 预发/生产环境 -->
+            <then>
+                <property name="logging.infoAppender.fileName" value="all-ss_micro_app_${hostname}_lt_all"/>
+                <property name="logging.errorAppender.fileName" value="error-ss_micro_app_${hostname}_lt_error"/>
+                <property name="logging.path" value="/alidata1/admin/${project.name}/logs"/>
+            </then>
+            <else>
+                <property name="logging.infoAppender.fileName" value="all-ss_micro_app_${project.name.monitor}_lt_all"/>
+                <property name="logging.errorAppender.fileName" value="error-ss_micro_app_${project.name.monitor}_lt_error"/>
+                <!-- 兼容Mac，可以自行配置日志根目录 -->
+                <if condition='property("LOG_ROOT").length() == 0'>
+                    <then>
+                        <property name="logging.path" value="/alidata1/admin/${project.name}/logs"/>
+                    </then>
+                    <else>
+                        <property name="logging.path" value="${LOG_ROOT}/${project.name}/logs"/>
+                    </else>
+                </if>
+            </else>
+        </if>
+
+        <if condition='property("logging.level").length() == 0'>
+            <then>
+                <if condition='",prd".indexOf(property("DEPLOY_ENV")) > 0'>
+                    <then>
+                        <property name="logging.level" value="INFO"/>
+                    </then>
+                    <else>
+                        <property name="logging.level" value="DEBUG"/>
+                    </else>
+                </if>
+            </then>
+        </if>
+
+        <!-- logging.sqlAppender.fileName: sql日志文件名 -->
+        <if condition='property("logging.sqlAppender.fileName").length() == 0'>
+            <then>
+                <property name="logging.sqlAppender.fileName" value="sql_${hostname}_all"/>
+            </then>
+        </if>
+
+        <!-- logging.consoleAppender.fileName: console日志文件名 -->
+        <if condition='property("logging.consoleAppender.fileName").length() == 0'>
+            <then>
+                <property name="logging.consoleAppender.fileName" value="console-${project.name}_all"/>
+            </then>
+        </if>
+
+        <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+            <target>System.out</target>
+            <encoder>
+                <charset>UTF-8</charset>
+                <pattern>${logPrintFormat}</pattern>
+            </encoder>
+        </appender>
+
+        <appender name="consoleAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+            <file>${logging.path}/${logging.consoleAppender.fileName}.log</file>
+            <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+                <fileNamePattern>${logging.path}/${logging.consoleAppender.fileName}-%d{yyyy-MM-dd}.log</fileNamePattern>
+                <maxHistory>365</maxHistory>
+            </rollingPolicy>
+            <encoder>
+                <charset>UTF-8</charset>
+                <pattern>%d [%thread] %-5p [%c][%F:%L] [trace=%X{X-B3-TraceId:-},span=%X{X-B3-SpanId:-}][%X{productCode}]-%msg%n
+                </pattern>
+            </encoder>
+        </appender>
+
+        <!-- 异步输出 consoleAppender 的日志 -->
+        <appender name="consoleAppenderAsync" class="ch.qos.logback.classic.AsyncAppender">
+            <includeCallerData>true</includeCallerData>
+            <discardingThreshold>0</discardingThreshold>
+            <queueSize>2048</queueSize>
+            <appender-ref ref="consoleAppender"/>
+        </appender>
+
+
+
+
+
+
+    <logger name="com.zhongan.fcp.pre">
+        <level value="${logging.level}"/>
+    </logger>
+
+    <root>
+        <level value="INFO"/>
+        <appender-ref ref="errorAppenderAsync"/>
+        <appender-ref ref="infoAppenderAsync"/>
+        <appender-ref ref="STDOUT"/>
+    </root>
+</configuration>

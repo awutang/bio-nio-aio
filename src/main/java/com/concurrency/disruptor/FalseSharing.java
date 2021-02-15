@@ -5,7 +5,7 @@
 package com.concurrency.disruptor;
 
 /**
- * 伪共享
+ * 伪共享:不同线程需要修改的不同变量处于一个cacheLine中，导致任何一个线程修改数据导致另一个线程的缓存行失效
  * 增大数组元素的间隔使得由不同线程存取的元素位于不同的缓存行上，以空间换时间
  */
 public class FalseSharing implements Runnable{

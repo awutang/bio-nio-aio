@@ -7,5 +7,6 @@ package com.jvm.learning;
 public enum SexEnum {
 
     Male,
-    Female;
+    Female,
+    None;
 }

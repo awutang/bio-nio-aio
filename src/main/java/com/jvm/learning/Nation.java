@@ -4,9 +4,29 @@
  */
 package com.jvm.learning;
 
-public class Nation {
+import java.io.Serializable;
 
+public class Nation implements Serializable {
+
+
+    private static final long serialVersionUID = -1572850327659968066L;
     private String nationName;
+
+    private String nationAge;
+
+    public Nation(String nationName, String nationAge) {
+        this.nationName = nationName;
+        this.nationAge = nationAge;
+    }
+
+
+    public String getNationAge() {
+        return nationAge;
+    }
+
+    public void setNationAge(String nationAge) {
+        this.nationAge = nationAge;
+    }
 
     public Nation(String nationName) {
         this.nationName = nationName;

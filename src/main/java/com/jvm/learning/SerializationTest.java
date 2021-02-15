@@ -17,7 +17,7 @@ public class SerializationTest {
         System.out.println("序列化：");
         try(ObjectOutputStream out = new ObjectOutputStream(
                 new FileOutputStream("object.txt"))) {
-            Nation nation = new Nation("China");
+            Nation nation = new Nation("China", "1000");
             Teacher teacher = new Teacher("Tom", 53, SexEnum.Female, nation);
             System.out.println("序列化之前的hash：" + teacher.hashCode());
             out.writeObject(teacher);
