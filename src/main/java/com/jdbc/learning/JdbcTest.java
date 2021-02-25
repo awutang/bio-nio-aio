@@ -9,6 +9,9 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+/**
+ * 熟悉SPI模式
+ */
 public class JdbcTest {
 
 
